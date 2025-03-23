@@ -1,24 +1,49 @@
-use reqwest;
-use scraper::{Html, Selector};
-use tokio;
+// main.rs
+use reqwest_app::{DataExtractor, HtmlDocument, WebScraper};
 
 #[tokio::main]
-async fn main() -> Result<(), reqwest::Error> {
-    let url = "https://holodex.net/";
-    let body = reqwest::get(url).await?.text().await?;
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // 初始化爬蟲
+    let scraper = WebScraper::new();
+    let url = "https://kawa.homes";
 
-    let document = Html::parse_document(&body);
+    // 獲取頁面內容
+    let html = scraper.fetch_page(url).await?;
 
-    // 1. 先找到 id="bodywrap" 的 div
-    let bodywrap_selector = Selector::parse("div#bodywrap").unwrap();
-    if let Some(bodywrap) = document.select(&bodywrap_selector).next() {
-        // 2. 在 bodywrap 內搜尋 img
-        let img_selector = Selector::parse("img").unwrap();
-        for img in bodywrap.select(&img_selector) {
-            let src = img.attr("src").unwrap_or("No src found");
-            let alt = img.attr("alt").unwrap_or("No alt found");
-            println!("Image Src: {}, Alt: {}", src, alt);
+    // 解析 HTML
+    let document = HtmlDocument::new(&html);
+
+    // 創建數據提取器
+    let extractor = DataExtractor::new(&document);
+
+    // 提取並顯示鏈接信息
+    println!("=== 鏈接信息 ===");
+    match extractor.extract_attribute_pairs("main", "a", "href", "title") {
+        Ok(links) => {
+            if links.is_empty() {
+                println!("沒有找到鏈接");
+            } else {
+                for (href, title) in links {
+                    println!("Link: {}, Title: {}", href, title);
+                }
+            }
         }
+        Err(e) => println!("提取鏈接時出錯: {:?}", e),
+    }
+
+    // 提取並顯示圖片信息
+    println!("\n=== 圖片信息 ===");
+    match extractor.extract_attribute_pairs("main", "img", "src", "alt") {
+        Ok(images) => {
+            if images.is_empty() {
+                println!("沒有找到圖片");
+            } else {
+                for (src, alt) in images {
+                    println!("Image Src: {}, Alt: {}", src, alt);
+                }
+            }
+        }
+        Err(e) => println!("提取圖片時出錯: {:?}", e),
     }
 
     Ok(())
