@@ -1093,6 +1093,7 @@ dependencies = [
  "anyhow",
  "reqwest",
  "scraper",
+ "serde",
  "thiserror",
  "tokio",
 ]

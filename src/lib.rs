@@ -1,6 +1,7 @@
 use anyhow::Result;
 use reqwest::Client;
 use scraper::{Html, Selector};
+use std::collections::HashMap;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -112,6 +113,48 @@ impl WebScraper {
             .text()
             .await
             .map_err(|e| ScraperError::RequestError(e))?;
+        Ok(body)
+    }
+
+    // 新增 POST 表單請求方法
+    pub async fn post_form(
+        &self,
+        url: &str,
+        params: HashMap<String, String>,
+    ) -> Result<String, ScraperError> {
+        let response = self
+            .client
+            .post(url)
+            .form(&params)
+            .send()
+            .await
+            .map_err(ScraperError::RequestError)?;
+
+        let body = response.text().await.map_err(ScraperError::RequestError)?;
+
+        Ok(body)
+    }
+
+    // 如果需要更靈活的配置，可以添加帶有額外選項的方法
+    pub async fn post_form_with_headers(
+        &self,
+        url: &str,
+        params: HashMap<String, String>,
+        additional_headers: Option<HashMap<String, String>>,
+    ) -> Result<String, ScraperError> {
+        let mut request = self.client.post(url).form(&params);
+
+        // 添加額外的請求頭
+        if let Some(headers) = additional_headers {
+            for (key, value) in headers {
+                request = request.header(key, value);
+            }
+        }
+
+        let response = request.send().await.map_err(ScraperError::RequestError)?;
+
+        let body = response.text().await.map_err(ScraperError::RequestError)?;
+
         Ok(body)
     }
 }
