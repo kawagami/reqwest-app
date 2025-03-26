@@ -10,3 +10,4 @@ scraper = "0.18"
 anyhow = "1.0"
 thiserror = "2"
 serde = { version = "1", features = ["derive"] }
+chrono = { version = "0.4.34", features = ["serde"] }

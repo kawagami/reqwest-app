@@ -91,3 +91,15 @@ impl StockBuyback {
         )
     }
 }
+
+// 預計完成 取得對照時間的盤後價 兩者間的差異
+// 取得 起始 & 結束 時間點
+// 取兩個時間點的盤後價
+// 計算差異
+pub struct ClosingPrice {
+    pub stock_symbol: String,             // 股票代碼
+    pub name: String,                     // 股票中文名稱
+    pub price: f64,                       // 盤後價格
+    pub volume: u64,                      // 成交量
+    pub timestamp: chrono::NaiveDateTime, // 時間戳
+}
